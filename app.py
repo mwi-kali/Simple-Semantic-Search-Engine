@@ -1,3 +1,4 @@
+import os
 import time
 import tracemalloc
 
@@ -23,6 +24,21 @@ def get_engine():
     return SearchEngine()
 
 engine = get_engine()
+
+
+st.markdown(
+    """
+    <style>
+    .result-card { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
+    .result-title a { font-size: 1.25rem; color: #1a0dab; text-decoration: none; }
+    .result-title a:hover { text-decoration: underline; }
+    .result-url { font-size: 0.875rem; color: #006621; margin-bottom: 0.25rem; }
+    .result-snippet { font-size: 1rem; color: #545454; line-height: 1.4; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 METRICS_REGISTRY = CollectorRegistry()
 
@@ -74,49 +90,57 @@ with st.sidebar:
 
 
 st.header("Search")
-query = st.text_input("Enter your query here...")
+query = st.text_input("Enter your query here…")
 if st.button("Search") and query:
     REQ_COUNT.inc()
     start = time.time()
-    raw = engine.search(query)
+    raw_hits = engine.search(query)
     REQ_LAT.observe(time.time() - start)
 
-    if not raw:
+    if not raw_hits:
         st.warning("No results found.")
     else:
-        seen = {}
-        for hit in raw:
-            src = hit["meta"].get("source") or hit.get("payload",{}).get("source")
-            if src not in seen or hit.get("score",0) < seen[src].get("score", float("inf")):
-                seen[src] = hit
+        # Dedupe by source, keep highest‐scoring first
+        seen, unique = set(), []
+        for hit in raw_hits:
+            src = hit["meta"].get("source") or hit.get("source", "")
+            if src in seen: 
+                continue
+            seen.add(src)
+            unique.append(hit)
+            if len(unique) >= Settings.TOP_K:
+                break
 
-        st.markdown("### Top hits by file")
-        for src, hit in seen.items():
-            text = hit.get("text", "")            
+        # Render like Google
+        for hit in unique:
+            src = hit["meta"].get("source") or hit.get("source", "")
+            title = os.path.basename(src) or src
+            text = hit.get("text", "")
+            # Build a snippet around the query
             idx = text.lower().find(query.lower())
             if idx != -1:
                 start_snip = max(0, idx - 80)
                 end_snip   = min(len(text), idx + len(query) + 80)
                 snippet = text[start_snip:end_snip]
-                if start_snip>0:    snippet = "…" + snippet
-                if end_snip<len(text): snippet = snippet + "…"
+                if start_snip > 0:    snippet = "…" + snippet
+                if end_snip < len(text): snippet += "…"
             else:
-                snippet = text[:160] + ("…" if len(text)>160 else "")
+                snippet = text[:160] + ("…" if len(text) > 160 else "")
 
-            st.write(f"**File:** `{src}`")
-            highlighted = snippet.replace(
-                query, f"**{query}**"
+            # Highlight the query
+            snippet = snippet.replace(
+                query, f"<strong>{query}</strong>"
             )
-            st.markdown(f"> {highlighted}")
-            
-            try:
-                with open(src, "rb") as f:
-                    data_bytes = f.read()
-                st.download_button(
-                    "Download file",
-                    data_bytes,
-                    file_name=src.split("/")[-1],
-                    mime="application/octet-stream"
-                )
-            except FileNotFoundError:
-                pass
+
+            st.markdown(
+                f"""
+                <div class="result-card">
+                  <div class="result-title">
+                    <a href="{src}" target="_blank">{title}</a>
+                  </div>
+                  <div class="result-url">{src}</div>
+                  <div class="result-snippet">{snippet}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
