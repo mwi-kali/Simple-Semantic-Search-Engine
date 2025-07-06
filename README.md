@@ -41,8 +41,8 @@ Simple-Semantic-Search-Engine/
 ### 1. Clone & Install Locally
 
 ```bash
-git clone https://github.com/yourusername/semantic-search-engine.git
-cd semantic-search-engine
+git clone https://github.com/mwi-kali/Simple-Semantic-Search-Engine.git
+cd Simple-Semantic-Search-Engine
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
