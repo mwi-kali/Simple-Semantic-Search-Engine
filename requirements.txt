@@ -1,0 +1,15 @@
+beautifulsoup4
+faiss-cpu
+langchain-community
+langchain-core
+langchain-pymupdf4llm
+langchain-text-splitters
+langchain-unstructured
+prometheus-client
+pytest
+qdrant-client
+sentence-transformers
+streamlit
+torch
+unstructured
+unstructured[pdf]
