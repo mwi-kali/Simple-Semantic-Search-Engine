@@ -11,18 +11,26 @@ The system supports versatile ingestion capabilities, allowing you to seamlessly
 ## Project Layout
 
 ```
-semantic_search_engine/
-├── config/          
-├── app_logging/    
-├── ingestion/      
-├── processing/      
-├── search/        
-├── web_app/         
-├── tests/         
-├── data/          
+Simple-Semantic-Search-Engine/
+├── data/
+├── semantic_search_engine/
+│   ├── __init__.py
+│   ├── base_loader.py
+│   ├── embedder.py
+│   ├── engine.py
+│   ├── file_loader.py
+│   ├── logger.py
+│   ├── settings.py
+│   ├── splitter.py
+│   ├── url_loader.py
+│   └── vectorstore.py
+├── .dockerignore
+├── .gitignore
+├── app.py
 ├── Dockerfile
-├── requirements.txt
-└── README.md
+├── README.md
+└── requirements.txt
+
 ```
 
 ---
