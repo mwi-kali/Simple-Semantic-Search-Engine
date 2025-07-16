@@ -111,12 +111,12 @@ if st.button("Search") and query:
             if len(unique) >= Settings.TOP_K:
                 break
 
-        # Render like Google
+
         for hit in unique:
             src = hit["meta"].get("source") or hit.get("source", "")
             title = os.path.basename(src) or src
             text = hit.get("text", "")
-            # Build a snippet around the query
+            
             idx = text.lower().find(query.lower())
             if idx != -1:
                 start_snip = max(0, idx - 80)
@@ -127,7 +127,7 @@ if st.button("Search") and query:
             else:
                 snippet = text[:160] + ("…" if len(text) > 160 else "")
 
-            # Highlight the query
+
             snippet = snippet.replace(
                 query, f"<strong>{query}</strong>"
             )
